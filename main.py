@@ -2,14 +2,18 @@ import os
 
 import discord
 
-from db import r, test_redis_connection
+from db import db
 
 bot = discord.Bot(owner_id=int(os.getenv("OWNER", "")))
 
-cogs_list = ["setup", "doam", "events"]
-for cog in cogs_list:
-    bot.load_extension(f"cogs.{cog}")
-
 if __name__ == "__main__":
-    test_redis_connection(r)
+    # Since all bot functionality relies on database connection, we can exit early if the connection fails
+    if not db.ping():
+        print("Redis connection failed.")
+        exit(1)
+
+    for file in os.scandir("cogs"):
+        bot.load_extension(f"cogs.{file.name[:-3]}")
+        print(f"Cog loaded: {file.name}")
+
     bot.run(os.getenv("TOKEN", ""))

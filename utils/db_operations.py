@@ -1,38 +1,38 @@
 import discord as d
 
-from db import r
+from db import db
 
 
 def fetch_server_settings(ctx: d.ApplicationContext):
-    return r.hgetall(f"settings:{ctx.guild.id}")
+    return db.hgetall(f"settings:{ctx.guild.id}")
 
 
 def fetch_active_doam(guild_id: int):
-    return r.hgetall(f"doam:{guild_id}")
+    return db.hgetall(f"doam:{guild_id}")
 
 
 def fetch_active_derby(guild_id: int):
-    return r.hgetall(f"derby:{guild_id}")
+    return db.hgetall(f"derby:{guild_id}")
 
 
 def fetch_hitting_logs(ctx: d.ApplicationContext):
-    return r.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1), r.lrange(
+    return db.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1), db.lrange(
         f"p2_hitting:{ctx.guild.id}", 0, -1
     )
 
 
 def set_pitch(ctx: d.ApplicationContext, pitch: int):
-    r.hset(f"doam:{ctx.guild.id}", mapping={"pitch": pitch})
+    db.hset(f"doam:{ctx.guild.id}", mapping={"pitch": pitch})
 
 
 def delete_doam_data(ctx: d.ApplicationContext):
-    r.delete(f"doam:{ctx.guild.id}")
-    r.delete(f"p1_hitting:{ctx.guild.id}")
-    r.delete(f"p2_hitting:{ctx.guild.id}")
+    db.delete(f"doam:{ctx.guild.id}")
+    db.delete(f"p1_hitting:{ctx.guild.id}")
+    db.delete(f"p2_hitting:{ctx.guild.id}")
 
 
 def register_doam(ctx: d.ApplicationContext, player1: d.Member, player2: d.Member):
-    r.hset(
+    db.hset(
         f"doam:{ctx.guild.id}",
         mapping={
             "player1": player1.id,
@@ -50,14 +50,14 @@ def register_doam(ctx: d.ApplicationContext, player1: d.Member, player2: d.Membe
         },
     )
 
-    r.lpush(
+    db.lpush(
         f"p1_hitting:{ctx.guild.id}",
         "-",
         "-----------------------------",
         "Pitch | Swing | Diff | Result",
         "-----------------------------",
     )
-    r.lpush(
+    db.lpush(
         f"p2_hitting:{ctx.guild.id}",
         "-",
         "-----------------------------",
@@ -73,7 +73,7 @@ def set_server_settings(
     admin_role: d.Role | None = None,
     ping_role: d.Role | None = None,
 ):
-    r.hset(
+    db.hset(
         f"settings:{ctx.guild.id}",
         mapping={
             "channel": channel.id if channel else "",

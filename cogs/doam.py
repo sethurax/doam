@@ -6,7 +6,7 @@ import discord as d
 import discord.ext.pages as p
 from discord.ext import commands as c
 
-from db import r
+from db import db
 from utils.db_operations import (
     fetch_server_settings,
     fetch_active_doam,
@@ -191,25 +191,25 @@ class Doam(c.Cog):
         # TODO: can probably split this out into separate modules for updating scores, logging results
         if diff <= 100:
             if int(doam["hitting"]) == int(doam["player1"]):
-                r.hincrby(f"doam:{ctx.guild.id}", "p1_score", 1)
-                r.lpush(
+                db.hincrby(f"doam:{ctx.guild.id}", "p1_score", 1)
+                db.lpush(
                     f"p1_hitting:{ctx.guild.id}",
                     f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}HR   ",
                 )
             else:
-                r.hincrby(f"doam:{ctx.guild.id}", "p2_score", 1)
-                r.lpush(
+                db.hincrby(f"doam:{ctx.guild.id}", "p2_score", 1)
+                db.lpush(
                     f"p2_hitting:{ctx.guild.id}",
                     f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}HR   ",
                 )
         else:
             if doam["hitting"] == doam["player1"]:
-                r.lpush(
+                db.lpush(
                     f"p1_hitting:{ctx.guild.id}",
                     f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}--   ",
                 )
             else:
-                r.lpush(
+                db.lpush(
                     f"p2_hitting:{ctx.guild.id}",
                     f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}--   ",
                 )
@@ -276,8 +276,8 @@ class Doam(c.Cog):
             else:
                 doam["p2_score"] = f"**{doam['p2_score']}**"
 
-            p1_hitting = r.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1)
-            p2_hitting = r.lrange(f"p2_hitting:{ctx.guild.id}", 0, -1)
+            p1_hitting = db.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1)
+            p2_hitting = db.lrange(f"p2_hitting:{ctx.guild.id}", 0, -1)
 
             summary_pages = [
                 p.Page(
@@ -341,7 +341,7 @@ class Doam(c.Cog):
             )
 
         if int(doam["round"]) < 10:
-            r.hset(
+            db.hset(
                 f"doam:{ctx.guild.id}",
                 mapping={"round": int(doam["round"]) + 1, "pitch": 0},
             )
@@ -349,7 +349,7 @@ class Doam(c.Cog):
         if int(doam["round"]) == 10:
             if doam["hitting"] == doam["player2"]:
                 await channel.send("# SWITCHING SIDES")
-                r.hset(
+                db.hset(
                     f"doam:{ctx.guild.id}",
                     mapping={
                         "round": 1,
@@ -360,7 +360,7 @@ class Doam(c.Cog):
                 )
             else:
                 await channel.send("# SWITCHING SIDES")
-                r.hset(
+                db.hset(
                     f"doam:{ctx.guild.id}",
                     mapping={
                         "round": 11,
@@ -373,14 +373,14 @@ class Doam(c.Cog):
         if int(doam["round"]) >= 11:
             if doam["hitting"] == doam["player1"]:
                 await channel.send("# SWITCHING SIDES")
-                r.hset(
+                db.hset(
                     f"doam:{ctx.guild.id}",
                     mapping={"round": int(doam["round"]) + 1, "pitch": 0},
                 )
             else:
                 await channel.send("# SWITCHING SIDES")
 
-            r.hset(
+            db.hset(
                 f"doam:{ctx.guild.id}",
                 mapping={
                     "pitching": doam["hitting"],
@@ -389,7 +389,7 @@ class Doam(c.Cog):
                 },
             )
 
-        updated_data2 = r.hgetall(f"doam:{ctx.guild.id}")
+        updated_data2 = db.hgetall(f"doam:{ctx.guild.id}")
         await channel.send(f"# ROUND {updated_data2['round']}")
         return await channel.send(
             f"<@{updated_data2["pitching"]}> - use `/p` to submit your pitch!"
