@@ -8,7 +8,7 @@ from utils.permissions import has_doam_permission
 from utils.responses import CommandResponse
 
 
-class Doam(c.Cog):
+class Derby(c.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -47,4 +47,4 @@ class Doam(c.Cog):
 
 
 def setup(bot: d.Bot):
-    bot.add_cog(Doam(bot))
+    bot.add_cog(Derby(bot))
