@@ -389,6 +389,8 @@ class Doam(c.Cog):
                 },
             )
 
+        await ctx.delete()
+
         updated_data2 = db.hgetall(f"doam:{ctx.guild.id}")
         await channel.send(f"# ROUND {updated_data2['round']}")
         return await channel.send(
