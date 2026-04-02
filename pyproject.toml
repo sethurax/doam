@@ -1,0 +1,13 @@
+[project]
+name = "doam"
+version = "0.1.0"
+description = "doam is a Pycord-based Discord bot that runs Major League Redditball's competitive home run derby number guessing minigame."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.9",
+    "ty>=0.0.27",
+]
