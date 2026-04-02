@@ -1,8 +1,7 @@
 import os
 import redis
 
-# Using two separate DBs on the same Redis Cloud instance for development and production
-branch = 0 if os.getenv("BRANCH") else 1
+branch = 0 if os.getenv("BRANCH") == "main" else 1
 
 db = redis.Redis(
     host=os.getenv("REDIS_HOST_PROD", ""),
