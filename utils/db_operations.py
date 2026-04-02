@@ -1,19 +1,13 @@
 import discord as d
-
 from db import db
 
 
-def fetch_server_settings(ctx: d.ApplicationContext):
-    if ctx.guild:
-        return db.hgetall(f"settings:{ctx.guild.id}")
+def fetch_server_settings(guild_id: int):
+    return db.hgetall(f"settings:{guild_id}")
 
 
 def fetch_active_doam(guild_id: int):
     return db.hgetall(f"doam:{guild_id}")
-
-
-def fetch_active_derby(guild_id: int):
-    return db.hgetall(f"derby:{guild_id}")
 
 
 def fetch_hitting_logs(ctx: d.ApplicationContext):
@@ -89,5 +83,5 @@ def set_server_settings(
             },
         )
 
-    # Since I want to show the updated settings, I'll fetch them again here rather than requiring another function call in the parent
-    return fetch_server_settings(ctx)
+        # Since I want to show the updated settings, I'll fetch them again here rather than requiring another function call in the parent
+        return fetch_server_settings(ctx.guild.id)

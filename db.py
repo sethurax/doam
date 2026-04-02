@@ -1,6 +1,7 @@
 import os
 import redis
 
+# Using two separate DBs on one Redis instance for production and development
 branch = 0 if os.getenv("BRANCH") == "main" else 1
 
 db = redis.Redis(
