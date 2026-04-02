@@ -5,6 +5,7 @@ description = "doam is a Pycord-based Discord bot that runs Major League Redditb
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "py-cord>=2.7.1",
     "redis>=7.4.0",
 ]
 
