@@ -6,7 +6,8 @@ bot = (
     discord.Bot(owner_id=int(os.getenv("OWNER", "")))
     if os.getenv("BRANCH") == "main"
     else discord.Bot(
-        debug_guilds=[1233881092248043641], owner_id=int(os.getenv("OWNER", ""))
+        debug_guilds=[int(os.getenv("DEBUG_GUILD", ""))],
+        owner_id=int(os.getenv("OWNER", "")),
     )
 )
 
