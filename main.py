@@ -1,5 +1,6 @@
 import os
 import discord
+import time
 from db import db
 
 bot = (
@@ -16,6 +17,7 @@ if __name__ == "__main__":
     if not db.ping():
         print("Redis connection failed.")
         exit(1)
+    print(f"{time.strftime('%H:%M:%S', time.localtime())}: Redis connection active")
 
     for file in os.scandir("cogs"):
         bot.load_extension(f"cogs.{file.name[:-3]}")
