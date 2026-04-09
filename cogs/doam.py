@@ -128,7 +128,7 @@ class Doam(c.Cog):
     )
     async def p(self, ctx: d.ApplicationContext, num: int):
 
-        settings = fetch_server_settings(ctx)
+        settings = fetch_server_settings(ctx.guild.id)
         if not settings:
             return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
 
@@ -170,7 +170,7 @@ class Doam(c.Cog):
     )
     async def s(self, ctx: d.ApplicationContext, num: int):
 
-        settings = fetch_server_settings(ctx)
+        settings = fetch_server_settings(ctx.guild.id)
         if not settings:
             return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
 
