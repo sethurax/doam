@@ -50,10 +50,6 @@ class Doam(c.Cog):
         player1: d.Member,
         player2: d.Member,
     ):
-        # The type checker gets angry if we don't bring it snacks
-        if ctx.guild is None or ctx.author is not d.Member:
-            return
-
         settings = fetch_server_settings(ctx.guild.id)
         if not settings:
             return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
@@ -92,9 +88,6 @@ class Doam(c.Cog):
         contexts=[d.InteractionContextType.guild],
     )
     async def end(self, ctx: d.ApplicationContext):
-        # The type checker gets angry if we don't bring it snacks
-        if ctx.guild is None or ctx.author is not d.Member:
-            return
 
         settings = fetch_server_settings(ctx.guild.id)
 
@@ -134,9 +127,6 @@ class Doam(c.Cog):
         required=True,
     )
     async def p(self, ctx: d.ApplicationContext, num: int):
-        # The type checker gets angry if we don't bring it snacks
-        if ctx.guild is None or ctx.author is not d.Member:
-            return
 
         settings = fetch_server_settings(ctx)
         if not settings:
@@ -179,9 +169,6 @@ class Doam(c.Cog):
         required=True,
     )
     async def s(self, ctx: d.ApplicationContext, num: int):
-        # The type checker gets angry if we don't bring it snacks
-        if ctx.guild is None or ctx.author is not d.Member:
-            return
 
         settings = fetch_server_settings(ctx)
         if not settings:
