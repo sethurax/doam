@@ -10,6 +10,10 @@ def fetch_active_doam(guild_id: int):
     return db.hgetall(f"doam:{guild_id}")
 
 
+def fetch_active_derby(guild_id: int):
+    return db.hgetall(f"derby:{guild_id}")
+
+
 def fetch_hitting_logs(ctx: d.ApplicationContext):
     if ctx.guild:
         return db.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1), db.lrange(

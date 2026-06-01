@@ -52,3 +52,17 @@ def generate_doam_start_embed(ctx: d.ApplicationContext, players: list):
         image=os.getenv("LOGO", ""),
         timestamp=datetime.now(),
     )
+
+
+def generate_derby_start_embed(
+    ctx: d.ApplicationContext, pitcher: d.Member, pitches: int
+):
+    return d.Embed(
+        title="A new DOAM Run Derby has been started!",
+        fields=[
+            d.EmbedField(name="Pitcher", value=f"{pitcher.mention}"),
+            d.EmbedField(name="Pitches (max one pitch / minute)", value=f"{pitches}"),
+        ],
+        image=os.getenv("LOGO", ""),
+        timestamp=datetime.now(),
+    )
