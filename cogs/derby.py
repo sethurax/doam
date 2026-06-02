@@ -328,7 +328,8 @@ class Derby(c.Cog):
         hrs = 1 if diff < 100 else 0
 
         await ctx.respond(
-            f"Diff: {diff} | Result: {'HR' if diff < 100 else 'No HR'}. Pitch will be revealed at the end of the round!"
+            f"Diff: {diff} | Result: {'HR' if diff < 100 else 'No HR'}. Pitch will be revealed at the end of the round!",
+            ephemeral=True,
         )
 
         db.hset(
@@ -344,8 +345,8 @@ class Derby(c.Cog):
         )
 
         # If user has not swung yet this derby, add them to the hitters list and scoreboard
-        if db.sismember(f"{ctx.user.id}") == 0:
-            db.sadd(f"{ctx.user.id}")
+        if db.sismember(f"derby_hitters:{ctx.guild.id}", f"{ctx.user.id}") == 0:
+            db.sadd(f"derby_hitters:{ctx.guild.id}", f"{ctx.user.id}")
             db.hset(
                 f"derby_score:{ctx.user.id}",
                 mapping={

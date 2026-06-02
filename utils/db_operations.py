@@ -42,8 +42,12 @@ def delete_derby_data(ctx: d.ApplicationContext):
     if ctx.guild:
         db.delete(f"derby:{ctx.guild.id}")
         db.delete(f"derby_results:{ctx.guild.id}")
+        hitter_ids = db.smembers(f"derby_hitters:{ctx.guild.id}")
+        pipe = db.pipeline()
+        for user_id in hitter_ids:
+            pipe.delete(f"derby_score:{user_id}")
+        pipe.execute()
         db.delete(f"derby_hitters:{ctx.guild.id}")
-        db.delete(f"derby_scoreboard:{ctx.guild.id}")
 
 
 def register_doam(ctx: d.ApplicationContext, player1: d.Member, player2: d.Member):
@@ -94,7 +98,7 @@ def register_derby(ctx: d.ApplicationContext, pitcher: d.Member, pitches: int):
                 "round": 1,
                 "pitch": 0,
                 "pitch_allowed": "yes",
-                "swing_allowed": "yes",
+                "swing_allowed": "no",
                 "swing_count": 0,
                 "sum_diff": 0,
                 "hrs": 0,
