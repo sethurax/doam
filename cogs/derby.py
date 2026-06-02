@@ -147,19 +147,17 @@ class Derby(c.Cog):
 
         # if second pitch or more, build previous round results
         if int(derby["round"]) >= 1:
-            round = str(derby["round"])
+            rd = str(derby["round"])
             pitch = str(derby["pitch"])
-            swings = str(derby["swing_count"])
+            swings = int(derby["swing_count"])
             avg_diff = (
-                round((int(derby["sum_diff"])) / int(swings), 2)
-                if int(derby["sum_diff"]) == 0
+                round((int(derby["sum_diff"])) / swings)
+                if int(derby["sum_diff"]) != 0
                 else 0
             )
             hrs = derby["hrs"]
 
-            round_results = (
-                f"{round:<5}| {pitch:<4}| {swings:<4}|{avg_diff:<5}| {hrs:<4}"
-            )
+            round_results = f"{rd:<5}| {pitch:<4}| {swings:<4}| {avg_diff:<4}| {hrs:<4}"
 
             hitter_ids = db.smembers(f"derby_hitters:{ctx.guild.id}")
             pipe = db.pipeline()
@@ -188,12 +186,12 @@ class Derby(c.Cog):
 
             db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-            await channel.send(f"## Round {round} Results")
+            await channel.send(f"## Round {rd} Results")
             await channel.send(
                 f"```-----------------------------\nRd   |  P  | #Sw | Dif | HRs \n-----------------------------\n{round_results}```"
             )
 
-            await channel.send(f"## Leaderboard After Round {round}")
+            await channel.send(f"## Leaderboard After Round {rd}")
             await channel.send(
                 f"```{'Name':<32}HRs\n-----------------------------------\n{scoreboard_string}```"
             )
@@ -250,19 +248,17 @@ class Derby(c.Cog):
 
             # TODO: compile and post game results
 
-            round = str(derby["round"])
+            rd = str(derby["round"])
             pitch = str(derby["pitch"])
-            swings = str(derby["swing_count"])
+            swings = int(derby["swing_count"])
             avg_diff = (
-                round((int(derby["sum_diff"])) / int(swings), 2)
-                if int(derby["sum_diff"]) == 0
+                round((int(derby["sum_diff"])) / swings)
+                if int(derby["sum_diff"]) != 0
                 else 0
             )
             hrs = derby["hrs"]
 
-            round_results = (
-                f"{round:<5}| {pitch:<4}| {swings:<4}|{avg_diff:<5}| {hrs:<4}"
-            )
+            round_results = f"{rd:<5}| {pitch:<4}| {swings:<4}| {avg_diff:<4}| {hrs:<4}"
 
             hitter_ids = db.smembers(f"derby_hitters:{ctx.guild.id}")
             pipe = db.pipeline()
@@ -291,7 +287,7 @@ class Derby(c.Cog):
 
             db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-            await channel.send(f"## Round {round} Results")
+            await channel.send(f"## Round {rd} Results")
             await channel.send(f"```{round_results}```")
 
             await channel.send("# Game Over! Final Results")
