@@ -67,7 +67,6 @@ class Derby(c.Cog):
             content=(f"<@&{settings['ping_role']}>" if settings["ping_role"] else ""),
             embeds=[generate_derby_start_embed(ctx, pitcher, pitches)],
         )
-        await channel.send(f"# Round 1  of {pitches}")
         await channel.send(f"{pitcher.mention} - use `/dp` to submit your first pitch!")
 
         register_derby(ctx, pitcher, pitches)
@@ -212,6 +211,8 @@ class Derby(c.Cog):
                 },
             )
 
+            db.delete(f"derby_hitters_this_round:{ctx.guild.id}")
+
             await channel.send(
                 f"# Round {int(derby['round']) + 1} of {derby['total_pitches']}"
             )
@@ -332,7 +333,8 @@ class Derby(c.Cog):
             == 1
         ):
             return await ctx.respond(
-                "You have already swung in this round of the derby. Please wait for next round before swinging again!"
+                "You have already swung in this round of the derby. Please wait for next round before swinging again!",
+                ephemeral=True,
             )
 
         diff = calculate_diff(int(derby["pitch"]), num)
