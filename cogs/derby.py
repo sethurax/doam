@@ -135,7 +135,7 @@ class Derby(c.Cog):
                 str(CommandResponse.NOT_DERBY_PITCHER), ephemeral=True
             )
 
-        if int(derby["pitch_allowed"]) != "yes":
+        if derby["pitch_allowed"] != "yes":
             return await ctx.respond(
                 "You must wait at least one minute between pitches - you will get a ping when it's time!",
                 ephemeral=True,
