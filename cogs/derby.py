@@ -1,18 +1,14 @@
-import os
-import random
-from datetime import datetime
+import time
 
 import discord as d
-import discord.ext.pages as p
 from discord.ext import commands as c
 
 from db import db
 from utils.db_operations import (
     fetch_server_settings,
     fetch_active_derby,
-    register_doam,
-    delete_doam_data,
-    set_pitch,
+    register_derby,
+    delete_derby_data,
 )
 from utils.diff import calculate_diff
 from utils.embeds import generate_derby_start_embed
@@ -36,7 +32,7 @@ class Derby(c.Cog):
     )
     @d.option(
         name="pitcher",
-        description="The pitcher for the ",
+        description="The pitcher for the derby.",
         input_type=d.SlashCommandOptionType.user,
     )
     @d.option(
@@ -71,329 +67,296 @@ class Derby(c.Cog):
             content=(f"<@&{settings['ping_role']}>" if settings["ping_role"] else ""),
             embeds=[generate_derby_start_embed(ctx, pitcher, pitches)],
         )
-        await channel.send(f"# PITCH 1 - {pitches} pitches left!")
+        await channel.send(f"# PITCH 1  of {pitches}")
         await channel.send(f"{pitcher.mention} - use `/dp` to submit your first pitch!")
 
-        # register_doam(ctx, players[0], players[1])
+        register_derby(ctx, pitcher, pitches)
         return await ctx.respond(str(CommandResponse.DERBY_STARTED), ephemeral=True)
 
-    # @doam.command(
-    #     name="end",
-    #     description="End the currently running DOAM.",
-    #     contexts=[d.InteractionContextType.guild],
-    # )
-    # async def end(self, ctx: d.ApplicationContext):
+    @derby.command(
+        name="end",
+        description="End the currently running DOAM Run Derby.",
+        contexts=[d.InteractionContextType.guild],
+    )
+    async def end(self, ctx: d.ApplicationContext):
 
-    #     settings = fetch_server_settings(ctx.guild.id)
+        settings = fetch_server_settings(ctx.guild.id)
 
-    #     if not settings:
-    #         return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
+        if not settings:
+            return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
 
-    #     if not has_doam_permission(ctx.author, settings, self.bot):
-    #         return await ctx.respond(
-    #             str(CommandResponse.MISSING_END_PERM),
-    #             ephemeral=True,
-    #         )
+        if not has_doam_permission(ctx.author, settings, self.bot):
+            return await ctx.respond(
+                str(CommandResponse.MISSING_END_PERM),
+                ephemeral=True,
+            )
 
-    #     doam = fetch_active_doam(ctx.guild.id)
-    #     if not doam:
-    #         return await ctx.respond(
-    #             str(CommandResponse.NO_ACTIVE_DOAM),
-    #             ephemeral=True,
-    #         )
+        doam = fetch_active_derby(ctx.guild.id)
+        if not doam:
+            return await ctx.respond(
+                str(CommandResponse.NO_ACTIVE_DERBY),
+                ephemeral=True,
+            )
 
-    #     delete_doam_data(ctx)
+        delete_derby_data(ctx)
 
-    #     channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
-    #     await channel.send(f"DOAM ended by {ctx.author.mention}")
-    #     return await ctx.respond(CommandResponse.DOAM_ENDED, ephemeral=True)
+        channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
+        await channel.send(f"DOAM Run Derby ended by {ctx.author.mention}")
+        return await ctx.respond(CommandResponse.DERBY_ENDED, ephemeral=True)
 
-    # @d.slash_command(
-    #     name="p",
-    #     description="Throw a pitch!",
-    #     contexts=[d.InteractionContextType.guild],
-    # )
-    # @d.option(
-    #     name="num",
-    #     description="The pitch number you want to submit.",
-    #     input_type=d.SlashCommandOptionType.integer,
-    #     min_value=1,
-    #     max_value=1000,
-    #     required=True,
-    # )
-    # async def p(self, ctx: d.ApplicationContext, num: int):
+    @d.slash_command(
+        name="dp",
+        description="Throw a derby pitch!",
+        contexts=[d.InteractionContextType.guild],
+    )
+    @d.option(
+        name="num",
+        description="The pitch number you want to submit.",
+        input_type=d.SlashCommandOptionType.integer,
+        min_value=1,
+        max_value=1000,
+        required=True,
+    )
+    async def dp(self, ctx: d.ApplicationContext, num: int):
 
-    #     settings = fetch_server_settings(ctx.guild.id)
-    #     if not settings:
-    #         return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
+        settings = fetch_server_settings(ctx.guild.id)
+        if not settings:
+            return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
 
-    #     doam = fetch_active_doam(ctx.guild.id)
-    #     if not doam:
-    #         return await ctx.respond(
-    #             str(CommandResponse.NO_ACTIVE_DOAM),
-    #             ephemeral=True,
-    #         )
+        derby = fetch_active_derby(ctx.guild.id)
+        if not derby:
+            return await ctx.respond(
+                str(CommandResponse.NO_ACTIVE_DERBY),
+                ephemeral=True,
+            )
 
-    #     if int(doam["pitching"]) != ctx.author.id:
-    #         return await ctx.respond(str(CommandResponse.NOT_PITCHER), ephemeral=True)
+        if int(derby["pitcher"]) != ctx.author.id:
+            return await ctx.respond(
+                str(CommandResponse.NOT_DERBY_PITCHER), ephemeral=True
+            )
 
-    #     if int(doam["pitch"]) != 0:
-    #         set_pitch(ctx, num)
-    #         return await ctx.respond("Pitch updated!", ephemeral=True)
+        if int(derby["pitch_allowed"]) != "yes":
+            return await ctx.respond(
+                "You must wait at least one minute between pitches - you will get a ping when it's time!",
+                ephemeral=True,
+            )
 
-    #     await ctx.delete()
+        await ctx.respond("Pitch submitted!", ephemeral=True)
 
-    #     channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
-    #     await channel.send(
-    #         f"<@{doam['hitting']}> - the pitch is in! Use `/s` to submit your swing."
-    #     )
+        channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
 
-    #     return set_pitch(ctx, num)
+        # if second pitch or more, build previous round results
+        if int(derby["round"]) > 1:
+            round = str(derby["round"])
+            pitch = str(derby["pitch"])
+            swings = str(derby["swing_count"])
+            avg_diff = round((int(derby["sum_diff"])) / int(swings), 2)
+            hrs = derby["hrs"]
 
-    # @d.slash_command(
-    #     name="s",
-    #     description="Swing the bat!",
-    #     contexts=[d.InteractionContextType.guild],
-    # )
-    # @d.option(
-    #     name="num",
-    #     description="The swing number you want to submit.",
-    #     input_type=d.SlashCommandOptionType.integer,
-    #     min_value=1,
-    #     max_value=1000,
-    #     required=True,
-    # )
-    # async def s(self, ctx: d.ApplicationContext, num: int):
+            round_results = (
+                f"{round:<5}| {pitch:<4}| {swings:<4}|{avg_diff:<5}| {hrs:<4}"
+            )
 
-    #     settings = fetch_server_settings(ctx.guild.id)
-    #     if not settings:
-    #         return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
+            hitter_ids = db.smembers(f"derby_hitters:{ctx.guild.id}")
+            pipe = db.pipeline()
+            for user_id in hitter_ids:
+                pipe.hgetall(f"derby_score:{user_id}")
+            raw_results = pipe.execute()
 
-    #     doam = fetch_active_doam(ctx.guild.id)
-    #     if not doam:
-    #         return await ctx.respond(
-    #             str(CommandResponse.NO_ACTIVE_DOAM),
-    #             ephemeral=True,
-    #         )
+            scores = []
+            for user_id, hash_data in zip(hitter_ids, raw_results):
+                if not hash_data:
+                    continue
+                scores.append(
+                    {
+                        "user_id": user_id,
+                        "name": hash_data.get("name", ""),
+                        "swings": int(hash_data.get("swings", 0)),
+                        "total_diff": int(hash_data.get("total_diff", 0)),
+                        "hrs": int(hash_data.get("hrs", 0)),
+                    }
+                )
 
-    #     if int(doam["hitting"]) != ctx.author.id:
-    #         return await ctx.respond(str(CommandResponse.NOT_HITTER), ephemeral=True)
+            scoreboard = sorted(scores, key=lambda x: (-x["hrs"], x["name"]))
+            scoreboard_string = "\n".join(
+                f"{entry['name']:<32}{entry['hrs']:<3}" for entry in scoreboard
+            )
 
-    #     if int(doam["pitch"]) == 0:
-    #         return await ctx.respond(str(CommandResponse.NO_SWING_YET), ephemeral=True)
+            db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-    #     channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
+            await channel.send(f"## Round {round} Results")
+            await channel.send(f"```{round_results}```")
 
-    #     diff = calculate_diff(int(doam["pitch"]), num)
+            await channel.send(f"## Leaderboard After Round {round}")
+            await channel.send(f"```{'Name':<32}HRs\n{scoreboard_string}```")
 
-    #     # TODO: can probably split this out into separate modules for updating scores, logging results
-    #     if diff <= 100:
-    #         if int(doam["hitting"]) == int(doam["player1"]):
-    #             db.hincrby(f"doam:{ctx.guild.id}", "p1_score", 1)
-    #             db.lpush(
-    #                 f"p1_hitting:{ctx.guild.id}",
-    #                 f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}HR   ",
-    #             )
-    #         else:
-    #             db.hincrby(f"doam:{ctx.guild.id}", "p2_score", 1)
-    #             db.lpush(
-    #                 f"p2_hitting:{ctx.guild.id}",
-    #                 f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}HR   ",
-    #             )
-    #     else:
-    #         if doam["hitting"] == doam["player1"]:
-    #             db.lpush(
-    #                 f"p1_hitting:{ctx.guild.id}",
-    #                 f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}--   ",
-    #             )
-    #         else:
-    #             db.lpush(
-    #                 f"p2_hitting:{ctx.guild.id}",
-    #                 f"{doam['pitch']:<8}{str(num):<8}{str(diff):<7}--   ",
-    #             )
+        # if current round number is less than limit, reset for next round:
 
-    #     doam = fetch_active_doam(ctx.guild.id)
+        if int(derby["round"]) < int(derby["total_pitches"]):
+            db.hset(
+                f"derby:{ctx.guild.id}",
+                mapping={
+                    "round": int(derby["round"]) + 1,
+                    "pitch": num,
+                    "pitch_allowed": "no",
+                    "swing_allowed": "yes",
+                    "swing_count": 0,
+                    "sum_diff": 0,
+                    "hrs": 0,
+                },
+            )
 
-    #     await channel.send(
-    #         embeds=[
-    #             d.Embed(
-    #                 title=f"Round {doam['round']}",
-    #                 fields=[
-    #                     d.EmbedField(
-    #                         name="Result:",
-    #                         value=f"```Pitch:  {doam['pitch']}\nSwing:  {num}\n\nDiff:   {diff}\n\nResult: {'HR' if diff <= 100 else 'No HR'}```",
-    #                     ),
-    #                     d.EmbedField(
-    #                         name=f"Scores After Round {doam['round']}:",
-    #                         value=f"{doam['p1_name']} - {doam['p1_score']}\n{doam['p2_name']} - {doam['p2_score']}",
-    #                     ),
-    #                 ],
-    #                 timestamp=datetime.now(),
-    #                 footer=d.EmbedFooter(
-    #                     text="Questions? Issues? Use /help",
-    #                 ),
-    #             )
-    #         ]
-    #     )
+            await channel.send(
+                "Hitters - the pitch is in! Use `/ds` to swing - you have 60 seconds, but not necessarily more!"
+            )
 
-    #     game_ends = False
+            time.sleep(60)
 
-    #     if int(doam["p1_score"]) > int(doam["p2_score"]):
-    #         game_ends = True
+            db.hset(f"derby:{ctx.guild.id}", mapping={"pitch_allowed": "yes"})
 
-    #     chase_rounds = 10 - int(doam["round"])
-    #     if (
-    #         int(doam["round"]) < 10
-    #         and doam["hitting"] == doam["player1"]
-    #         and int(doam["p1_score"]) < int(doam["p2_score"])
-    #     ):
-    #         if int(doam["p2_score"]) - int(doam["p1_score"]) > chase_rounds:
-    #             game_ends = True
+            return await channel.send(
+                f"<@{derby['pitcher']}> - one minute has passed, you may submit your next pitch at any time."
+            )
 
-    #     if (
-    #         int(doam["round"]) >= 10
-    #         and doam["player1"] == doam["hitting"]
-    #         and int(doam["p1_score"]) != int(doam["p2_score"])
-    #     ):
-    #         game_ends = True
+        # if current round number is exactly the limit, this is the last round
+        if int(derby["round"]) == int(derby["total_pitches"]):
+            db.hset(
+                f"derby:{ctx.guild.id}",
+                mapping={
+                    "round": int(derby["round"]) + 1,
+                    "pitch": num,
+                    "pitch_allowed": "no",
+                    "swing_count": 0,
+                    "sum_diff": 0,
+                    "hrs": 0,
+                },
+            )
 
-    #     if game_ends:
-    #         winner = (
-    #             doam["p1_name"]
-    #             if int(doam["p1_score"]) > int(doam["p2_score"])
-    #             else doam["p2_name"]
-    #         )
-    #         winner_logo = (
-    #             doam["p1_avatar"]
-    #             if int(doam["p1_score"]) > int(doam["p2_score"])
-    #             else doam["p2_avatar"]
-    #         )
+            await channel.send(
+                "Hitters - the pitch is in! Use `/ds` to swing - you have exactly 60 seconds, no more!"
+            )
 
-    #         if winner == doam["p1_name"]:
-    #             doam["p1_score"] = f"**{doam['p1_score']}**"
-    #         else:
-    #             doam["p2_score"] = f"**{doam['p2_score']}**"
+            time.sleep(60)
 
-    #         p1_hitting = db.lrange(f"p1_hitting:{ctx.guild.id}", 0, -1)
-    #         p2_hitting = db.lrange(f"p2_hitting:{ctx.guild.id}", 0, -1)
+            db.hset(f"derby:{ctx.guild.id}", mapping={"swing_allowed": "no"})
 
-    #         summary_pages = [
-    #             p.Page(
-    #                 embeds=[
-    #                     d.Embed(
-    #                         title=f"{winner} wins!",
-    #                         description=f"Total rounds: {doam['round']}",
-    #                         fields=[
-    #                             d.EmbedField(
-    #                                 name="Final Score:",
-    #                                 value=f"{doam['p1_name']} - {doam['p1_score']}\n{doam['p2_name']} - {doam['p2_score']}",
-    #                             )
-    #                         ],
-    #                         timestamp=datetime.now(),
-    #                         thumbnail=winner_logo or os.getenv("LOGO", "") or None,
-    #                         footer=d.EmbedFooter(
-    #                             text="Questions? Issues? Use /help",
-    #                         ),
-    #                     )
-    #                 ]
-    #             ),
-    #             p.Page(
-    #                 embeds=[
-    #                     d.Embed(
-    #                         title=f"{doam['p1_name']}",
-    #                         description=f"Batting Results\n```{'\n'.join(p1_hitting[::-1])}```",
-    #                         timestamp=datetime.now(),
-    #                         footer=d.EmbedFooter(
-    #                             text="Questions? Issues? Use /help",
-    #                         ),
-    #                     )
-    #                 ]
-    #             ),
-    #             p.Page(
-    #                 embeds=[
-    #                     d.Embed(
-    #                         title=f"{doam['p2_name']}",
-    #                         description=f"Batting Results\n```{'\n'.join(p2_hitting[::-1])}```",
-    #                         timestamp=datetime.now(),
-    #                         footer=d.EmbedFooter(
-    #                             text="Questions? Issues? Use /help",
-    #                         ),
-    #                     )
-    #                 ]
-    #             ),
-    #         ]
+            # TODO: compile and post game results
 
-    #         summary = p.Paginator(
-    #             pages=summary_pages,
-    #             timeout=None,
-    #             show_disabled=False,
-    #             author_check=False,
-    #         )
+            round = str(derby["round"])
+            pitch = str(derby["pitch"])
+            swings = str(derby["swing_count"])
+            avg_diff = round((int(derby["sum_diff"])) / int(swings), 2)
+            hrs = derby["hrs"]
 
-    #         delete_doam_data(ctx)
+            round_results = (
+                f"{round:<5}| {pitch:<4}| {swings:<4}|{avg_diff:<5}| {hrs:<4}"
+            )
 
-    #         return await summary.respond(
-    #             interaction=ctx.interaction,
-    #             target=channel,
-    #             target_message="Game over! Generating summary...",
-    #         )
+            hitter_ids = db.smembers(f"derby_hitters:{ctx.guild.id}")
+            pipe = db.pipeline()
+            for user_id in hitter_ids:
+                pipe.hgetall(f"derby_score:{user_id}")
+            raw_results = pipe.execute()
 
-    #     if int(doam["round"]) < 10:
-    #         db.hset(
-    #             f"doam:{ctx.guild.id}",
-    #             mapping={"round": int(doam["round"]) + 1, "pitch": 0},
-    #         )
+            scores = []
+            for user_id, hash_data in zip(hitter_ids, raw_results):
+                if not hash_data:
+                    continue
+                scores.append(
+                    {
+                        "user_id": user_id,
+                        "name": hash_data.get("name", ""),
+                        "swings": int(hash_data.get("swings", 0)),
+                        "total_diff": int(hash_data.get("total_diff", 0)),
+                        "hrs": int(hash_data.get("hrs", 0)),
+                    }
+                )
 
-    #     if int(doam["round"]) == 10:
-    #         if doam["hitting"] == doam["player2"]:
-    #             await channel.send("# SWITCHING SIDES")
-    #             db.hset(
-    #                 f"doam:{ctx.guild.id}",
-    #                 mapping={
-    #                     "round": 1,
-    #                     "pitching": doam["hitting"],
-    #                     "hitting": doam["pitching"],
-    #                     "pitch": 0,
-    #                 },
-    #             )
-    #         else:
-    #             await channel.send("# SWITCHING SIDES")
-    #             db.hset(
-    #                 f"doam:{ctx.guild.id}",
-    #                 mapping={
-    #                     "round": 11,
-    #                     "pitching": doam["hitting"],
-    #                     "hitting": doam["pitching"],
-    #                     "pitch": 0,
-    #                 },
-    #             )
+            scoreboard = sorted(scores, key=lambda x: (-x["hrs"], x["name"]))
+            scoreboard_string = "\n".join(
+                f"{entry['name']:<32}{entry['hrs']:<3}" for entry in scoreboard
+            )
 
-    #     if int(doam["round"]) >= 11:
-    #         if doam["hitting"] == doam["player1"]:
-    #             await channel.send("# SWITCHING SIDES")
-    #             db.hset(
-    #                 f"doam:{ctx.guild.id}",
-    #                 mapping={"round": int(doam["round"]) + 1, "pitch": 0},
-    #             )
-    #         else:
-    #             await channel.send("# SWITCHING SIDES")
+            db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-    #         db.hset(
-    #             f"doam:{ctx.guild.id}",
-    #             mapping={
-    #                 "pitching": doam["hitting"],
-    #                 "hitting": doam["pitching"],
-    #                 "pitch": 0,
-    #             },
-    #         )
+            await channel.send(f"## Round {round} Results")
+            await channel.send(f"```{round_results}```")
 
-    #     await ctx.delete()
+            await channel.send("# Game Over! Final Results")
+            await channel.send(f"```{'Name':<32}HRs\n{scoreboard_string}```")
 
-    #     updated_data2 = db.hgetall(f"doam:{ctx.guild.id}")
-    #     await channel.send(f"# ROUND {updated_data2['round']}")
-    #     return await channel.send(
-    #         f"<@{updated_data2['pitching']}> - use `/p` to submit your pitch!"
-    #     )
+    @d.slash_command(
+        name="ds",
+        description="Make a derby swing!",
+        contexts=[d.InteractionContextType.guild],
+    )
+    @d.option(
+        name="num",
+        description="The swing number you want to submit.",
+        input_type=d.SlashCommandOptionType.integer,
+        min_value=1,
+        max_value=1000,
+        required=True,
+    )
+    async def s(self, ctx: d.ApplicationContext, num: int):
+
+        settings = fetch_server_settings(ctx.guild.id)
+        if not settings:
+            return await ctx.respond(str(CommandResponse.NO_SETTINGS), ephemeral=True)
+
+        derby = fetch_active_derby(ctx.guild.id)
+        if not derby:
+            return await ctx.respond(
+                str(CommandResponse.NO_ACTIVE_DERBY),
+                ephemeral=True,
+            )
+
+        if derby["swing_allowed"] == "no":
+            return await ctx.respond(
+                str(CommandResponse.NO_DERBY_SWING), ephemeral=True
+            )
+
+        diff = calculate_diff(int(derby["pitch"]), num)
+        hrs = 1 if diff < 100 else 0
+
+        await ctx.respond(
+            f"Diff: {diff} | Result: {'HR' if diff < 100 else 'No HR'}. Pitch will be revealed at the end of the round!"
+        )
+
+        db.hset(
+            f"derby:{ctx.guild.id}",
+            mapping={
+                "swing_count": int(derby["swing_count"]) + 1,
+                "total_swing_count": int(derby["total_swing_count"]) + 1,
+                "sum_diff": int(derby["sum_diff"]) + diff,
+                "total_sum_diff": int(derby["total_sum_diff"]) + diff,
+                "hrs": int(derby["hrs"]) + hrs,
+                "total_hrs": int(derby["total_hrs"]) + hrs,
+            },
+        )
+
+        # If user has not swung yet this derby, add them to the hitters list and scoreboard
+        if db.sismember(f"{ctx.user.id}") == 0:
+            db.sadd(f"{ctx.user.id}")
+            db.hset(
+                f"derby_score:{ctx.user.id}",
+                mapping={
+                    "name": ctx.user.display_name,
+                    "swings": 1,
+                    "total_diff": diff,
+                    "hrs": hrs,
+                },
+            )
+        else:
+            score = db.hgetall(f"derby_score:{ctx.user.id}")
+            db.hset(
+                f"derby_score:{ctx.user.id}",
+                mapping={
+                    "swings": int(score["swings"]) + 1,
+                    "total_diff": int(score["total_diff"]) + diff,
+                    "hrs": int(score["hrs"]) + hrs,
+                },
+            )
 
 
 def setup(bot: d.Bot):

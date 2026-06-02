@@ -32,5 +32,9 @@ class CommandResponse(StrEnum):
     DERBY_ENDED = ("DOAM Run Derby ended. Use `/derby start` to start a new one!",)
 
     NOT_PITCHER = ("You are not the current pitcher in this DOAM.",)
+    NOT_DERBY_PITCHER = ("You are not the pitcher in the current DOAM Run Derby",)
     NOT_HITTER = ("You are not the current hitter in this DOAM.",)
     NO_SWING_YET = "Please wait for the pitcher to throw before submitting your swing!"
+    NO_DERBY_SWING = (
+        "It is not time to swing. Watch for a message in the DOAM channel to know when!"
+    )
