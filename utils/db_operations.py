@@ -95,7 +95,7 @@ def register_derby(ctx: d.ApplicationContext, pitcher: d.Member, pitches: int):
                 "pitcher_name": pitcher.display_name,
                 "pitcher_avatar": pitcher.display_avatar.url,
                 "total_pitches": pitches,
-                "round": 1,
+                "round": 0,
                 "pitch": 0,
                 "pitch_allowed": "yes",
                 "swing_allowed": "no",

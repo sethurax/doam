@@ -146,7 +146,7 @@ class Derby(c.Cog):
         channel = self.bot.get_channel(int(settings["channel"]) or ctx.channel.id)
 
         # if second pitch or more, build previous round results
-        if int(derby["round"]) > 1:
+        if int(derby["round"]) >= 1:
             round = str(derby["round"])
             pitch = str(derby["pitch"])
             swings = str(derby["swing_count"])
@@ -189,10 +189,14 @@ class Derby(c.Cog):
             db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
             await channel.send(f"## Round {round} Results")
-            await channel.send(f"```{round_results}```")
+            await channel.send(
+                f"```-----------------------------\nRd   |  P  | #Sw | Dif | HRs \n-----------------------------\n{round_results}```"
+            )
 
             await channel.send(f"## Leaderboard After Round {round}")
-            await channel.send(f"```{'Name':<32}HRs\n{scoreboard_string}```")
+            await channel.send(
+                f"```{'Name':<32}HRs\n-----------------------------------\n{scoreboard_string}```"
+            )
 
         # if current round number is less than limit, reset for next round:
 
