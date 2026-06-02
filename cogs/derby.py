@@ -1,4 +1,4 @@
-import time
+import asyncio
 
 import discord as d
 from discord.ext import commands as c
@@ -214,7 +214,7 @@ class Derby(c.Cog):
                 "Hitters - the pitch is in! Use `/ds` to swing - you have 60 seconds, but not necessarily more!"
             )
 
-            time.sleep(60)
+            asyncio.sleep(60)
 
             db.hset(f"derby:{ctx.guild.id}", mapping={"pitch_allowed": "yes"})
 
@@ -240,7 +240,7 @@ class Derby(c.Cog):
                 "Hitters - the pitch is in! Use `/ds` to swing - you have exactly 60 seconds, no more!"
             )
 
-            time.sleep(60)
+            asyncio.sleep(60)
 
             db.hset(f"derby:{ctx.guild.id}", mapping={"swing_allowed": "no"})
 
