@@ -91,8 +91,8 @@ class Derby(c.Cog):
                 ephemeral=True,
             )
 
-        doam = fetch_active_derby(ctx.guild.id)
-        if not doam:
+        derby = fetch_active_derby(ctx.guild.id)
+        if not derby:
             return await ctx.respond(
                 str(CommandResponse.NO_ACTIVE_DERBY),
                 ephemeral=True,
@@ -150,7 +150,11 @@ class Derby(c.Cog):
             round = str(derby["round"])
             pitch = str(derby["pitch"])
             swings = str(derby["swing_count"])
-            avg_diff = round((int(derby["sum_diff"])) / int(swings), 2)
+            avg_diff = (
+                round((int(derby["sum_diff"])) / int(swings), 2)
+                if int(derby["sum_diff"]) == 0
+                else 0
+            )
             hrs = derby["hrs"]
 
             round_results = (
@@ -245,7 +249,11 @@ class Derby(c.Cog):
             round = str(derby["round"])
             pitch = str(derby["pitch"])
             swings = str(derby["swing_count"])
-            avg_diff = round((int(derby["sum_diff"])) / int(swings), 2)
+            avg_diff = (
+                round((int(derby["sum_diff"])) / int(swings), 2)
+                if int(derby["sum_diff"]) == 0
+                else 0
+            )
             hrs = derby["hrs"]
 
             round_results = (
