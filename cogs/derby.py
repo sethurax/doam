@@ -195,9 +195,7 @@ class Derby(c.Cog):
                 f"```{'Name':<32}HRs\n-----------------------------------\n{scoreboard_string}```"
             )
 
-        # if current round number is less than limit, reset for next round:
-
-        if int(derby["round"]) < int(derby["total_pitches"]):
+        if int(derby["round"]) + 1 < int(derby["total_pitches"]):
             db.hset(
                 f"derby:{ctx.guild.id}",
                 mapping={
@@ -228,8 +226,7 @@ class Derby(c.Cog):
                 f"<@{derby['pitcher']}> - one minute has passed, you may submit your next pitch at any time."
             )
 
-        # if current round number is exactly the limit, this is the last round
-        if int(derby["round"]) == int(derby["total_pitches"]):
+        if int(derby["round"]) + 1 == int(derby["total_pitches"]):
             db.hset(
                 f"derby:{ctx.guild.id}",
                 mapping={
@@ -359,7 +356,6 @@ class Derby(c.Cog):
             },
         )
 
-        # If user has not swung yet this derby, add them to the hitters list and scoreboard
         if db.sismember(f"derby_hitters:{ctx.guild.id}", f"{ctx.user.id}") == 0:
             db.sadd(f"derby_hitters:{ctx.guild.id}", f"{ctx.user.id}")
             db.hset(
