@@ -67,7 +67,7 @@ class Derby(c.Cog):
             content=(f"<@&{settings['ping_role']}>" if settings["ping_role"] else ""),
             embeds=[generate_derby_start_embed(ctx, pitcher, pitches)],
         )
-        await channel.send(f"# PITCH 1  of {pitches}")
+        await channel.send(f"# Round 1  of {pitches}")
         await channel.send(f"{pitcher.mention} - use `/dp` to submit your first pitch!")
 
         register_derby(ctx, pitcher, pitches)
@@ -213,6 +213,9 @@ class Derby(c.Cog):
             )
 
             await channel.send(
+                f"# Round {int(derby['round']) + 1} of {derby['total_pitches']}"
+            )
+            await channel.send(
                 "Hitters - the pitch is in! Use `/ds` to swing - you have 60 seconds, but not necessarily more!"
             )
 
@@ -324,13 +327,23 @@ class Derby(c.Cog):
                 str(CommandResponse.NO_DERBY_SWING), ephemeral=True
             )
 
+        if (
+            db.sismember(f"derby_hitters_this_round:{ctx.guild.id}", f"{ctx.user.id}")
+            == 1
+        ):
+            return await ctx.respond(
+                "You have already swung in this round of the derby. Please wait for next round before swinging again!"
+            )
+
         diff = calculate_diff(int(derby["pitch"]), num)
-        hrs = 1 if diff < 100 else 0
+        hrs = 1 if diff <= 100 else 0
 
         await ctx.respond(
-            f"Diff: {diff} | Result: {'HR' if diff < 100 else 'No HR'}. Pitch will be revealed at the end of the round!",
+            f"Diff: {diff} | Result: {'HR' if diff <= 100 else 'No HR'}. Pitch will be revealed at the end of the round!",
             ephemeral=True,
         )
+
+        db.sadd(f"derby_hitters_this_round:{ctx.guild.id}", f"{ctx.user.id}")
 
         db.hset(
             f"derby:{ctx.guild.id}",
