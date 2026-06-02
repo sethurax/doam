@@ -185,7 +185,7 @@ class Derby(c.Cog):
 
             db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-            await channel.send(f"## Round {rd} Results")
+            await channel.send(f"# Round {rd} Results")
             await channel.send(
                 f"```-----------------------------\nRd   |  P  | #Sw | Dif | HRs \n-----------------------------\n{round_results}```"
             )
@@ -288,11 +288,12 @@ class Derby(c.Cog):
 
             db.lpush(f"derby_results:{ctx.guild.id}", round_results)
 
-            await channel.send(f"## Round {rd} Results")
+            await channel.send(f"# Round {rd} Results")
             await channel.send(f"```{round_results}```")
 
             await channel.send("# Game Over! Final Results")
             await channel.send(f"```{'Name':<32}HRs\n{scoreboard_string}```")
+            delete_derby_data(ctx)
 
     @d.slash_command(
         name="ds",
