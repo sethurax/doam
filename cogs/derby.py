@@ -214,7 +214,7 @@ class Derby(c.Cog):
                 "Hitters - the pitch is in! Use `/ds` to swing - you have 60 seconds, but not necessarily more!"
             )
 
-            asyncio.sleep(60)
+            await asyncio.sleep(60)
 
             db.hset(f"derby:{ctx.guild.id}", mapping={"pitch_allowed": "yes"})
 
@@ -240,7 +240,7 @@ class Derby(c.Cog):
                 "Hitters - the pitch is in! Use `/ds` to swing - you have exactly 60 seconds, no more!"
             )
 
-            asyncio.sleep(60)
+            await asyncio.sleep(60)
 
             db.hset(f"derby:{ctx.guild.id}", mapping={"swing_allowed": "no"})
 
